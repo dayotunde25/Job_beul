@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card animate__animated animate__fadeInUp">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-search me-2"></i>Admin Job Scraper</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('admin.scraper') }}">
+                        {{ form.hidden_tag() }}
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="source" class="form-label">Job Source</label>
+                                {{ form.source(class="form-select") }}
+                            </div>
+                            <div class="col-md-6">
+                                <label for="country" class="form-label">Country</label>
+                                {{ form.country(class="form-select") }}
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="query" class="form-label">Search Query</label>
+                                {{ form.query(class="form-control", placeholder="e.g., software engineer, data analyst") }}
+                            </div>
+                            <div class="col-md-6">
+                                <label for="location" class="form-label">Location</label>
+                                {{ form.location(class="form-control", placeholder="e.g., New York, London") }}
+                            </div>
+                        </div>
+
+                        <div class="d-grid mb-3">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-play me-2"></i>Start Scraping
+                            </button>
+                        </div>
+                    </form>
+
+                    <form method="POST" action="{{ url_for('admin.scraper') }}">
+                        {{ form.hidden_tag() }}
+                        <input type="hidden" name="source" value="all" />
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-secondary btn-lg">
+                                <i class="fas fa-play me-2"></i>Run All APIs
+                            </button>
+                        </div>
+                    </form>
+
+                    <hr class="my-4">
+
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-info-circle me-2"></i>Supported Sources:</h6>
+                        <ul class="mb-0">
+                            <li><strong>Latest Jobs API:</strong> Real-time job listings with latest postings</li>
+                            <li><strong>LinkedIn Job Search:</strong> Professional networking jobs from LinkedIn</li>
+                            <li><strong>Internship API:</strong> Internship and entry-level positions</li>
+                            <li><strong>Job Posting Feed:</strong> ATS-integrated job postings</li>
+                            <li><strong>Jobicy:</strong> Remote and flexible work opportunities</li>
+                            <li><strong>Jobs API:</strong> Comprehensive job search across multiple sources</li>
+                            <li><strong>JSearch:</strong> Multiple job sites aggregated</li>
+                            <li><strong>Indeed:</strong> Popular job search platform</li>
+                            <li><strong>Greenhouse:</strong> Company career pages via Greenhouse</li>
+                            <li><strong>Jooble:</strong> International job search</li>
+                            <li><strong>Gupy:</strong> Brazilian job platform</li>
+                            <li><strong>Job Vacancies:</strong> General job listings</li>
+                            <li><strong>WhatsJob:</strong> Mobile-optimized job search</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

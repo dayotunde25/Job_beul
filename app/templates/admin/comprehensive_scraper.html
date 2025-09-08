@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <!-- Header Card -->
+            <div class="card border-0 shadow-lg mb-4 animate__animated animate__fadeInDown">
+                <div class="card-body text-center py-5" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 0.375rem;">
+                    <h1 class="display-5 fw-bold mb-3">
+                        <i class="fas fa-robot me-3"></i>Comprehensive Job Scraper
+                    </h1>
+                    <p class="lead mb-0">Advanced web scraping using BeautifulSoup for multiple job sites</p>
+                </div>
+            </div>
+
+            <!-- Info Card -->
+            <div class="card border-0 shadow-sm mb-4 animate__animated animate__fadeInUp">
+                <div class="card-body">
+                    <h5 class="card-title text-primary mb-3">
+                        <i class="fas fa-info-circle me-2"></i>How It Works
+                    </h5>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex align-items-start">
+                                <i class="fas fa-globe text-primary me-3 mt-1"></i>
+                                <div>
+                                    <h6 class="mb-1">Multi-Country Scraping</h6>
+                                    <small class="text-muted">Scrapes jobs from 12 countries including Nigeria, USA, Canada, France, UK, and more</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex align-items-start">
+                                <i class="fas fa-search text-success me-3 mt-1"></i>
+                                <div>
+                                    <h6 class="mb-1">Multiple Job Sites</h6>
+                                    <small class="text-muted">Scrapes from LinkedIn, Indeed, and other major job platforms</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex align-items-start">
+                                <i class="fas fa-code text-warning me-3 mt-1"></i>
+                                <div>
+                                    <h6 class="mb-1">BeautifulSoup Powered</h6>
+                                    <small class="text-muted">Uses advanced HTML parsing to extract detailed job information</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex align-items-start">
+                                <i class="fas fa-shield-alt text-info me-3 mt-1"></i>
+                                <div>
+                                    <h6 class="mb-1">Rate Limited</h6>
+                                    <small class="text-muted">Includes delays and proper headers to avoid being blocked</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scraping Control Card -->
+            <div class="card border-0 shadow-lg animate__animated animate__fadeInUp animate__delay-1s">
+                <div class="card-body p-4">
+                    <h5 class="card-title text-primary mb-4">
+                        <i class="fas fa-play-circle me-2"></i>Start Comprehensive Scraping
+                    </h5>
+                    
+                    <div class="alert alert-warning" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Important:</strong> This process may take 10-15 minutes to complete as it scrapes multiple countries and job sites with proper rate limiting.
+                    </div>
+
+                    <div class="mb-4">
+                        <h6 class="text-secondary mb-3">Countries to be scraped:</h6>
+                        <div class="row">
+                            <div class="col-md-4 mb-2">
+                                <span class="badge bg-primary me-1">🇳🇬 Nigeria</span>
+                                <span class="badge bg-primary me-1">🇺🇸 USA</span>
+                                <span class="badge bg-primary me-1">🇫🇷 France</span>
+                            </div>
+                            <div class="col-md-4 mb-2">
+                                <span class="badge bg-primary me-1">🇬🇭 Ghana</span>
+                                <span class="badge bg-primary me-1">🇬🇧 UK</span>
+                                <span class="badge bg-primary me-1">🇸🇪 Sweden</span>
+                            </div>
+                            <div class="col-md-4 mb-2">
+                                <span class="badge bg-primary me-1">🇨🇦 Canada</span>
+                                <span class="badge bg-primary me-1">🇮🇳 India</span>
+                                <span class="badge bg-primary me-1">🇧🇷 Brazil</span>
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-md-6">
+                                <span class="badge bg-primary me-1">🇦🇺 Australia</span>
+                                <span class="badge bg-primary me-1">🇪🇬 Egypt</span>
+                                <span class="badge bg-primary me-1">🇱🇷 Liberia</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <h6 class="text-secondary mb-3">Job sites to be scraped:</h6>
+                        <div class="d-flex flex-wrap gap-2">
+                            <span class="badge bg-success">WhatJobs API</span>
+                            <span class="badge bg-info">LinkedIn Jobs</span>
+                            <span class="badge bg-info">Indeed</span>
+                            <span class="badge bg-info">Glassdoor</span>
+                            <span class="badge bg-info">RemoteOK</span>
+                        </div>
+                    </div>
+
+                    <form method="POST" id="scrapingForm">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg" id="startScraping">
+                                <i class="fas fa-rocket me-2"></i>Start Comprehensive Scraping
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Progress indicator (hidden by default) -->
+                    <div id="progressIndicator" class="mt-4" style="display: none;">
+                        <div class="text-center">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-3 text-muted">
+                                <strong>Scraping in progress...</strong><br>
+                                <small>This may take several minutes. Please don't close this page.</small>
+                            </p>
+                        </div>
+                        <div class="progress mt-3">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                 role="progressbar" style="width: 100%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Scraping Results -->
+            <div class="card border-0 shadow-sm mt-4 animate__animated animate__fadeInUp animate__delay-2s">
+                <div class="card-body">
+                    <h5 class="card-title text-primary mb-3">
+                        <i class="fas fa-chart-bar me-2"></i>Quick Stats
+                    </h5>
+                    <div class="row text-center">
+                        <div class="col-md-3 mb-3">
+                            <div class="border rounded p-3">
+                                <h4 class="text-primary mb-1">{{ total_jobs or 0 }}</h4>
+                                <small class="text-muted">Total Jobs</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="border rounded p-3">
+                                <h4 class="text-success mb-1">{{ recent_jobs or 0 }}</h4>
+                                <small class="text-muted">This Week</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="border rounded p-3">
+                                <h4 class="text-warning mb-1">{{ unique_companies or 0 }}</h4>
+                                <small class="text-muted">Companies</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="border rounded p-3">
+                                <h4 class="text-info mb-1">{{ sources_count or 0 }}</h4>
+                                <small class="text-muted">Sources</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <div class="text-center mt-4">
+                <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-primary me-3">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                </a>
+                <a href="{{ url_for('admin.scraper') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-cog me-2"></i>Regular Scraper
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('scrapingForm');
+    const button = document.getElementById('startScraping');
+    const progressIndicator = document.getElementById('progressIndicator');
+    
+    form.addEventListener('submit', function(e) {
+        // Show progress indicator
+        progressIndicator.style.display = 'block';
+        
+        // Disable button and change text
+        button.disabled = true;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Scraping in Progress...';
+        
+        // Scroll to progress indicator
+        progressIndicator.scrollIntoView({ behavior: 'smooth' });
+    });
+});
+</script>
+{% endblock %}
+{% endblock %}

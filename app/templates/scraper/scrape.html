@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card p-4 shadow animate__animated animate__fadeInUp">
+                <h3 class="text-center mb-4"><i class="fas fa-robot me-2"></i>Scrape Jobs</h3>
+                <p class="text-muted text-center mb-4">
+                    Use our intelligent scraper to fetch the latest job postings from various sources.
+                </p>
+                <form method="POST" action="{{ url_for('scraper.scrape') }}">
+                    {{ form.hidden_tag() }}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.source.label(class="form-label") }}
+                            {{ form.source(class="form-select") }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.query.label(class="form-label") }}
+                            {{ form.query(class="form-control", placeholder="e.g., software engineer") }}
+                            {% for error in form.query.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.location.label(class="form-label") }}
+                            {{ form.location(class="form-control", placeholder="e.g., New York, NY") }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.country.label(class="form-label") }}
+                            {{ form.country(class="form-select") }}
+                        </div>
+                    </div>
+                    <div class="d-grid">
+                        {{ form.submit(class="btn btn-primary btn-lg") }}
+                    </div>
+                </form>
+
+                <div class="mt-4">
+                    <h5>Supported Sources:</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li><i class="fab fa-linkedin text-primary me-2"></i>LinkedIn</li>
+                                <li><i class="fas fa-search text-success me-2"></i>JSearch (Multiple sites)</li>
+                                <li><i class="fas fa-briefcase text-warning me-2"></i>Indeed</li>
+                                <li><i class="fas fa-building text-info me-2"></i>Greenhouse</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-globe text-danger me-2"></i>Jooble</li>
+                                <li><i class="fas fa-rocket text-secondary me-2"></i>Gupy Jobs</li>
+                                <li><i class="fas fa-list text-dark me-2"></i>Job Vacancies</li>
+                                <li><i class="fas fa-comments text-info me-2"></i>WhatsJob</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
