@@ -32,7 +32,7 @@ class JobScraper:
         self.save_to_db = save_to_db
         self.total_jobs_saved = 0
         
-    def delay(self, min_seconds=1, max_seconds=3):
+    def delay(self, min_seconds=3, max_seconds=5):
         """Add random delay to avoid being blocked"""
         time.sleep(random.uniform(min_seconds, max_seconds))
 
