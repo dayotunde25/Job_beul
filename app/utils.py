@@ -77,6 +77,11 @@ def scrape_jobs_from_api(api_key, host, source, query, location=None, country='n
     import time
     import random
     from urllib.parse import quote_plus
+    import logging
+
+    # Set up logging
+    logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger(__name__)
 
     # Headers for web scraping
     scraping_headers = {
@@ -96,7 +101,7 @@ def scrape_jobs_from_api(api_key, host, source, query, location=None, country='n
 
     try:
         if source == 'jsearch':
-            # JSearch API - Working API
+            # JSearch API - Primary API with fallback
             url = f"https://jsearch.p.rapidapi.com/search"
             params = {
                 "query": query or "software developer",
@@ -108,12 +113,49 @@ def scrape_jobs_from_api(api_key, host, source, query, location=None, country='n
             if location:
                 params["location"] = location
 
-            response = requests.get(url, headers=api_headers, params=params)
-            if response.status_code == 200:
-                return response.json()
-            else:
-                print(f"JSearch API failed with status {response.status_code}, falling back to web scraping")
-                return scrape_linkedin_jobs(query, location, country)
+            # Retry logic for transient failures
+            max_retries = 3
+            for attempt in range(max_retries):
+                try:
+                    logger.info(f"Attempting JSearch API call with query: {query} (attempt {attempt + 1}/{max_retries})")
+                    response = requests.get(url, headers=api_headers, params=params, timeout=15)
+
+                    if response.status_code == 200:
+                        logger.info("JSearch API call successful")
+                        return response.json()
+                    elif response.status_code == 429:
+                        logger.warning("JSearch API quota exceeded, attempting fallback to Internships API")
+                        return scrape_internships_api_fallback(api_key, query, location, country)
+                    elif response.status_code >= 500:
+                        # Server errors - retry
+                        if attempt < max_retries - 1:
+                            logger.warning(f"JSearch API server error {response.status_code}, retrying in {2 ** attempt} seconds")
+                            time.sleep(2 ** attempt)  # Exponential backoff
+                            continue
+                        else:
+                            logger.error(f"JSearch API failed after {max_retries} attempts with status {response.status_code}")
+                            return scrape_internships_api_fallback(api_key, query, location, country)
+                    else:
+                        logger.error(f"JSearch API failed with status {response.status_code}: {response.text}")
+                        logger.info("Attempting fallback to Internships API")
+                        return scrape_internships_api_fallback(api_key, query, location, country)
+
+                except requests.exceptions.Timeout:
+                    if attempt < max_retries - 1:
+                        logger.warning(f"JSearch API timeout, retrying in {2 ** attempt} seconds")
+                        time.sleep(2 ** attempt)
+                        continue
+                    else:
+                        logger.error("JSearch API failed with timeout after all retries")
+                        return scrape_internships_api_fallback(api_key, query, location, country)
+                except requests.exceptions.RequestException as e:
+                    if attempt < max_retries - 1:
+                        logger.warning(f"JSearch API request error: {e}, retrying in {2 ** attempt} seconds")
+                        time.sleep(2 ** attempt)
+                        continue
+                    else:
+                        logger.error(f"JSearch API failed after all retries: {e}")
+                        return scrape_internships_api_fallback(api_key, query, location, country)
 
         elif source == 'linkedin':
             # Direct LinkedIn scraping
@@ -667,6 +709,89 @@ def get_location_for_country(country_code):
         'br': 'Brazil'
     }
     return country_locations.get(country_code, 'United States')
+
+def scrape_internships_api_fallback(api_key, query=None, location=None, country='us'):
+    """Fallback to Internships API when JSearch fails"""
+    import requests
+    import logging
+    from datetime import datetime
+
+    logger = logging.getLogger(__name__)
+
+    # Retry logic for fallback API
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            url = "https://internships-api.p.rapidapi.com/active-jb-7d"
+            headers = {
+                "X-RapidAPI-Key": api_key,
+                "X-RapidAPI-Host": "internships-api.p.rapidapi.com"
+            }
+
+            logger.info(f"Attempting Internships API fallback (attempt {attempt + 1}/{max_retries})")
+            response = requests.get(url, headers=headers, timeout=15)
+
+            if response.status_code == 200:
+                data = response.json()
+                logger.info(f"Internships API returned {len(data)} jobs")
+
+                # Convert internships format to JSearch-like format for compatibility
+                converted_jobs = []
+                for job in data:
+                    try:
+                        # Extract location from derived locations
+                        job_location = ""
+                        if job.get('locations_derived') and len(job.get('locations_derived', [])) > 0:
+                            job_location = job['locations_derived'][0]
+
+                        # Convert to JSearch format
+                        converted_job = {
+                            'job_id': str(job.get('id', '')),
+                            'job_title': job.get('title', ''),
+                            'employer_name': job.get('organization', ''),
+                            'job_description': f"Internship opportunity at {job.get('organization', '')}. {job.get('seniority', '')} position.",
+                            'job_url': job.get('url', ''),
+                            'job_city': job_location.split(',')[0] if ',' in job_location else job_location,
+                            'job_state': job_location.split(',')[1].strip() if ',' in job_location else '',
+                            'job_country': country.upper(),
+                            'job_posted_at_datetime_utc': job.get('date_posted', ''),
+                            'source': 'internships_api'
+                        }
+                        converted_jobs.append(converted_job)
+                    except Exception as e:
+                        logger.error(f"Error converting internship job: {e}")
+                        continue
+
+                return {'data': converted_jobs}
+            elif response.status_code >= 500:
+                # Server errors - retry
+                if attempt < max_retries - 1:
+                    logger.warning(f"Internships API server error {response.status_code}, retrying in {2 ** attempt} seconds")
+                    time.sleep(2 ** attempt)
+                    continue
+                else:
+                    logger.error(f"Internships API failed after {max_retries} attempts with status {response.status_code}")
+                    return None
+            else:
+                logger.error(f"Internships API failed with status {response.status_code}: {response.text}")
+                return None
+
+        except requests.exceptions.Timeout:
+            if attempt < max_retries - 1:
+                logger.warning(f"Internships API timeout, retrying in {2 ** attempt} seconds")
+                time.sleep(2 ** attempt)
+                continue
+            else:
+                logger.error("Internships API failed with timeout after all retries")
+                return None
+        except requests.exceptions.RequestException as e:
+            if attempt < max_retries - 1:
+                logger.warning(f"Internships API request error: {e}, retrying in {2 ** attempt} seconds")
+                time.sleep(2 ** attempt)
+                continue
+            else:
+                logger.error(f"Internships API failed after all retries: {e}")
+                return None
 
 def get_job_recommendations(user, limit=10):
     """Get job recommendations based on user profile"""

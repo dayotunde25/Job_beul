@@ -28,6 +28,16 @@ def extract_job_fields(job_data, source):
         date_posted_str = job_data.get('job_posted_at_datetime_utc', '')
         date_posted = datetime.fromisoformat(date_posted_str.replace('Z', '+00:00')) if date_posted_str else None
 
+    elif source == 'internships_api':
+        # Handle internships API format (fallback)
+        title = job_data.get('job_title', '')
+        company = job_data.get('employer_name', '')
+        location = f"{job_data.get('job_city', '')}, {job_data.get('job_state', '')}".strip(', ')
+        description = job_data.get('job_description', '')
+        url = job_data.get('job_url', '')
+        date_posted_str = job_data.get('job_posted_at_datetime_utc', '')
+        date_posted = datetime.fromisoformat(date_posted_str.replace('Z', '+00:00')) if date_posted_str else None
+
     elif source in ['linkedin', 'indeed']:
         title = job_data.get('title', '') or job_data.get('job_title', '')
         company = job_data.get('company', '') or job_data.get('company_name', '')
@@ -147,6 +157,9 @@ def scrape():
                 if not title or not url:
                     continue
 
+                # Use the source from job data if available (for fallback APIs), otherwise use form source
+                job_source = job_data.get('source', form.source.data)
+
                 job = Job(
                     title=title,
                     company=company,
@@ -154,7 +167,7 @@ def scrape():
                     description=description,
                     url=url,
                     date_posted=date_posted,
-                    source=form.source.data
+                    source=job_source
                 )
                 db.session.add(job)
                 jobs_added += 1
